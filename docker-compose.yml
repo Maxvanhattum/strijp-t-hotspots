@@ -1,0 +1,56 @@
+version: '3'
+services: 
+  api:
+    container_name: api_strijp-t
+    build: 
+      context: ./back-end
+      dockerfile: Dockerfile
+    ports: 
+      - 5000:5000
+    environment: 
+     - ASPNETCORE_URLS=http://+:5000;
+     - App__DockerProduction__NoSSL=true
+     - App__DockerProduction__ConfigureCors=true
+     - App__DockerProduction__CorsUrl=${FRONTEND_URL}
+     - App__DockerProduction__SwaggerPrefix=${SWAGGER_PREFIX}
+     - App__DatabaseConnection__User=${MYSQL_USER}
+     - App__DatabaseConnection__Password=${MYSQL_PASSWORD}
+     - App__DatabaseConnection__Database=${MYSQL_DATABASE}
+     - App__DatabaseConnection__Server=db
+     - App__DatabaseConnection__Port=3306
+    restart: on-failure
+    networks: 
+      mysql:
+
+  db:
+    container_name: db_strijp-t
+    image: mysql
+    environment: 
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    networks: 
+      mysql:
+    volumes:
+      - database:/var/lib/mysql
+  
+  front-end:
+    container_name: front-end_strijp-t
+    build: 
+      context: ./front-end
+      dockerfile: Dockerfile
+    ports:
+      - 8080:80
+    environment: 
+      - BACKEND_URL=${BACKEND_URL}
+    restart: on-failure
+
+networks:
+  mysql:
+    driver: bridge
+    ipam:
+      driver: default
+
+volumes:
+  database:

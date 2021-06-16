@@ -1,0 +1,52 @@
+version: '3'
+services: 
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    ports: 
+      - 5000:5000
+      - 5001:5001
+      - 80:80
+    environment: 
+     - ASPNETCORE_URLS=http://+:5000;https://+:5001;
+     - ASPNETCORE_Kestrel__Certificates__Default__Password=randompassverystrongyes
+     - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/aspnetapp.pfx
+     - App__DockerProduction__NoSSL=false
+     - App__DockerProduction__ConfigureCors=false
+     - App__DockerProduction__CorsUrl=
+     - App__DockerProduction__SwaggerPrefix=
+     - App__DatabaseConnection__User=restapi
+     - App__DatabaseConnection__Password=pass0909!@
+     - App__DatabaseConnection__Database=HOTSPOTS
+     - App__DatabaseConnection__Server=db
+     - App__DatabaseConnection__Port=3306
+    restart: on-failure
+    networks: 
+      mysql:
+
+  db:
+    image: mysql
+    ports:
+      - "54321:3306"
+    environment: 
+      - MYSQL_ROOT_PASSWORD=rand!om!pass123
+      - MYSQL_USER=restapi
+      - MYSQL_PASSWORD=pass0909!@
+      - MYSQL_DATABASE=HOTSPOTS
+    networks: 
+        mysql:
+    volumes: 
+      - database:/var/lib/mysql
+
+networks:
+  mysql:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.237.0/24
+
+volumes:
+  database:
+
